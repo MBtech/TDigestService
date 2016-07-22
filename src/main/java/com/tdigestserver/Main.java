@@ -8,6 +8,6 @@ import com.tdigestserver.TDigestServer;
  */
 public class Main {
     public static void main(String [] args){
-        TDigestServer ts = new TDigestServer(Integer.parseInt(args[1]));
+        TDigestServer ts = new TDigestServer(Integer.parseInt(args[0]));
     }
 }
