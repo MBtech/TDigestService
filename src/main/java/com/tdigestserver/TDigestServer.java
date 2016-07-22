@@ -110,7 +110,7 @@ public class TDigestServer {
                     if (clientCommand.equalsIgnoreCase("quit")) {
                         // Special command. Quit this thread 
                         m_bRunThread = false;
-                        System.out.print("Stopping client thread for client : ");
+                        System.out.print("Stopping client thread for client : "+t.size());
                     } else if (clientCommand.equalsIgnoreCase("end")) {
                         // Special command. Quit this thread and Stop the Server
                         m_bRunThread = false;
@@ -133,6 +133,7 @@ public class TDigestServer {
                     } else if (clientCommand.equalsIgnoreCase("get")) {
                         Double percentile = (Double) inStream.readObject();
                         Double result = t.quantile(percentile);
+                        
                         //System.out.println("Element read is: " + result);
                         outStream.writeObject(result);
                         outStream.flush();

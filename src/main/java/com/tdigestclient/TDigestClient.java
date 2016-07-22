@@ -86,7 +86,7 @@ public class TDigestClient {
     public void getPercentile(Double percentile){
         try {
             outStream.writeObject("get");
-            outStream.writeObject(0.90);
+            outStream.writeObject(percentile);
             System.out.println(inStream.readObject());
         } catch (IOException ex) {
             Logger.getLogger(TDigestClient.class.getName()).log(Level.SEVERE, null, ex);
