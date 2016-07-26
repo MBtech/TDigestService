@@ -39,7 +39,7 @@ public class TDigestClient {
     }
 
     public void connection() {
-        System.out.println("Entering the connection block");
+        //System.out.println("Entering the connection block");
         try {
             //
             outStream = new ObjectOutputStream(MyClient.getOutputStream());
@@ -82,7 +82,15 @@ public class TDigestClient {
             Logger.getLogger(TDigestClient.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+    public void addString(String data){
+    	try {
+	    outStream.writeObject("addData");
+            outStream.writeObject(data);
+	    outStream.flush();
+        }catch (IOException ex) {
+	    Logger.getLogger(TDigestClient.class.getName()).log(Level.SEVERE, null, ex);
+	}
+    } 
     public void getPercentile(Double percentile){
         try {
             outStream.writeObject("get");

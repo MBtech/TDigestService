@@ -3,6 +3,7 @@ package com.tdigestserver;
 import com.tdunning.math.stats.TDigest;
 import java.io.BufferedReader;
 import java.io.IOException;
+
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -11,6 +12,12 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+
+import java.io.EOFException;
+import java.util.List;
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
+import java.util.Arrays;
 
 public class TDigestServer {
 
@@ -59,10 +66,11 @@ public class TDigestServer {
 //    }
 
     class ClientServiceThread extends Thread {
-
+        long start = System.currentTimeMillis();
+        long current = System.currentTimeMillis();
         Socket myClientSocket;
         boolean m_bRunThread = true;
-
+	private TDigest temp = TDigest.createDigest(100);
         public ClientServiceThread() {
             super();
         }
@@ -94,10 +102,11 @@ public class TDigestServer {
                 // Run in a loop until m_bRunThread is set to false 
                 System.out.println("Starting the server thread");
                 while (m_bRunThread) {
-                    // read incoming stream 
+                   try{ 
+	            // read incoming stream 
                     String clientCommand = (String) inStream.readObject();
+		    current = System.currentTimeMillis();
                     //String clientCommand = in.readLine();
-                    System.out.println("Client Says :" + clientCommand);
 
                     if (!ServerOn) {
                         // Special command. Quit this thread 
@@ -118,32 +127,66 @@ public class TDigestServer {
                         ServerOn = false;
                     } else if (clientCommand.equalsIgnoreCase("add")) {
                         Double element = (Double) inStream.readObject();
-                        synchronized (this) {
+                        synchronized (t) {
                             t.add(element);
                         }
                         System.out.println("Element read is: " + element);
                     } else if (clientCommand.equalsIgnoreCase("addArray")) {
                         ArrayList<Double> elements = (ArrayList<Double>) inStream.readObject();
-                        synchronized (this) {
+                        synchronized (t) {
                             for (Double e : elements) {
                                 t.add(e);
                             }
                         }
-                        System.out.println("Element read is: " + elements);
-                    } else if (clientCommand.equalsIgnoreCase("get")) {
+                        //System.out.println("Element read is: " + elements);
+                    } else if(clientCommand.equalsIgnoreCase("addData") && current-start>=100000){
+                        
+                    System.out.println("Client "+ myClientSocket.getInetAddress().getHostName()+":"+myClientSocket.getPort() +" :" + clientCommand);
+                        String p = "";
+			try{
+			p = (String) inStream.readObject();
+			} catch (EOFException ex){
+				System.out.println("Socket disconnected");
+				break;
+			}
+			String st = p.replace("[", "").replace("]","");
+            		final Function<String, Double> fn = new Function<String, Double>()
+			{
+    				@Override
+   				 public Double apply(final String input)
+   				 {
+        				return Double.parseDouble(input);
+    				}
+			};
+
+            		ArrayList<String> myList = new ArrayList<String>(Arrays.asList(st.split(",")));
+            		final List<Double> D = Lists.transform(myList, fn);
+            		synchronized(temp){for (Double d : D){
+				temp.add(d);	
+            		}	  	
+			}
+
+ 		    }else if (clientCommand.equalsIgnoreCase("get")) {
                         Double percentile = (Double) inStream.readObject();
                         Double result = t.quantile(percentile);
                         
                         //System.out.println("Element read is: " + result);
                         outStream.writeObject(result);
                         outStream.flush();
-                    } else {
-                        // Process it 
-                        out.println("Server Says : " + clientCommand);
-                        out.flush();
                     }
+			 else {
+                        // Process it 
+                        //out.println("Server Says : " + clientCommand);
+                        //out.flush();
+                        inStream.readObject();
+                    }
+		    } catch (EOFException ex){
+				t.add(temp);
+				System.out.println("Socket disconnected");
+				break;
+			}
                 }
-            } catch (Exception e) {
+	    }catch (Exception e) {
                 e.printStackTrace();
             } finally {
                 // Clean up 
