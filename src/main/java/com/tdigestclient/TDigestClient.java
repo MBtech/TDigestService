@@ -89,7 +89,9 @@ public class TDigestClient {
 	    outStream.flush();
         }catch (IOException ex) {
 	    Logger.getLogger(TDigestClient.class.getName()).log(Level.SEVERE, null, ex);
-	}
+        }//catch (java.lang.ArrayIndexOutOfBoundsException exp){
+         //   Logger.getLogger(TDigestClient.class.getName()).log(Level.SEVERE, data, exp);
+        //}
     } 
     public void getPercentile(Double percentile){
         try {

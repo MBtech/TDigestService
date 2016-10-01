@@ -163,7 +163,11 @@ public class TDigestServer {
             		final List<Double> D = Lists.transform(myList, fn);
             		synchronized(temp){for (Double d : D){
 				temp.add(d);	
-            		}	  	
+            		} 
+                        synchronized (t) {
+                                    t.add(temp);
+                                }
+                                temp = TDigest.createDigest(100);	  	
 			}
 
  		    }else if (clientCommand.equalsIgnoreCase("get")) {
